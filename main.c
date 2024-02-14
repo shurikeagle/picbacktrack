@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "gps_uart.h"
+#include "display.h"
 
 #pragma region GPS
 
@@ -30,11 +31,6 @@ int main() {
 
     sleep_ms(100);
 
-    // char buff[NMEA_MAX_LENGTH];
-    char *buff = malloc(sizeof(char) * NMEA_SENTENCE_MAX_LENGTH);
-    int read_res;
-
-
     while (true) {
         // if (uart_is_writable(GPS_UART_ID)) {
         //     // poll the GPS module for a specific NMEA sentence
@@ -59,6 +55,4 @@ int main() {
 
         sleep_ms(1000);
     }
-    
-    free(buff);
 }

@@ -30,8 +30,8 @@ typedef struct {
 
 /// @brief Initializes gps_uart module
 /// @param uart uart wich is used for gps
-/// @param tx_pin uart tx pin
-/// @param rx_pin uart rx pin
+/// @param tx_pin uart tx gpio pin
+/// @param rx_pin uart rx gpio pin
 /// @param baudrate uart baudrate, one recommend to check correct baudrate in gps module datasheet
 void gps_uart_init(uart_inst_t *uart, uint tx_pin, uint rx_pin, uint baudrate);
 

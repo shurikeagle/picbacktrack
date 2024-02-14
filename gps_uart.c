@@ -25,7 +25,7 @@ void gps_uart_init(uart_inst_t *uart, uint tx_pin, uint rx_pin, uint baudrate)
     gpio_set_function(rx_pin, GPIO_FUNC_UART);
 
     sentence_buff = malloc(sizeof(char) * NMEA_SENTENCE_MAX_LENGTH);
-    this_last_err = malloc(GPS_UART_ERR_MAX_LENGTH);
+    this_last_err = malloc(sizeof(char) * GPS_UART_ERR_MAX_LENGTH);
 }
 
 void gps_uart_free()
@@ -187,5 +187,7 @@ static void write_last_err(char *err)
 {
     memset(gps_uart_last_err, 0, GPS_UART_ERR_MAX_LENGTH);
 
+    // gcc has a warning that we are trying to copy something into the empty buffer
+    // it's not, because we've inited buffer with malloc already
     strncpy(err, this_last_err, GPS_UART_ERR_MAX_LENGTH);
 }
