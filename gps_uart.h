@@ -12,6 +12,22 @@ typedef enum {
     GPS_UART_BAD_SENTENCE = -3
 } gps_uart_res_t;
 
+/// @brief Time from gps. Note, "no-gps-signal" value returns -1
+typedef struct {
+    int hours;
+    int minutes;
+    int seconds;
+} gps_time_t;
+
+/// @brief Parsed rmc sentence data. Note, "no-gps-signal" value for every field except time will returns NAN
+typedef struct {
+    gps_time_t time;
+    float latitude;
+    float longitude;
+    float speed;
+    bool has_signal;
+} rmc_data_t;
+
 /// @brief Initializes gps_uart module
 /// @param uart uart wich is used for gps
 /// @param tx_pin uart tx pin
@@ -28,6 +44,12 @@ void gps_uart_free();
 /// @return operation result
 gps_uart_res_t uart_read_nmea_sentence(char *buff, size_t buff_cnt);
 
+/// @brief Tries to put rmc data into provided struct until first valid gps rmc sentence
+/// @param out_data struct ptr to write data in
+/// @return operation result
+gps_uart_res_t gps_uart_get_rmc_blocking(rmc_data_t *out_data);
+
+/// @brief Returns last gps_uart module error
 const char *gps_uart_last_err(void);
 
 #pragma region private funcs

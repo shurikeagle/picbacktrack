@@ -1,16 +1,17 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "gps_uart.h"
 
 #include "vendor/minmea/minmea.h"
 
 #define GPS_UART_ERR_MAX_LENGTH 100
+#define GPS_UART_READING_INTERVAL_MS 200
 
 uart_inst_t *uart_inst;
+char *sentence_buff;
 char *this_last_err;
-
-// TODO: Write last errors
 
 #pragma region init free
 
@@ -23,12 +24,14 @@ void gps_uart_init(uart_inst_t *uart, uint tx_pin, uint rx_pin, uint baudrate)
     gpio_set_function(tx_pin, GPIO_FUNC_UART);
     gpio_set_function(rx_pin, GPIO_FUNC_UART);
 
+    sentence_buff = malloc(sizeof(char) * NMEA_SENTENCE_MAX_LENGTH);
     this_last_err = malloc(GPS_UART_ERR_MAX_LENGTH);
 }
 
 void gps_uart_free()
 {
     free(this_last_err);
+    free(sentence_buff);
 }
 
 #pragma endregion
@@ -43,16 +46,68 @@ gps_uart_res_t uart_read_nmea_sentence(char *buff, size_t buff_cnt)
 
     erase_buff(buff, buff_cnt);
 
-    if (uart_is_readable(uart_inst)) {
-        if ((result = read_until_first_symbol(buff)) != GPS_UART_OK) {
-            return result;
-        }
-
-        if ((result = read_up_to_the_end(buff)) != GPS_UART_OK) {
-            erase_buff(buff, buff_cnt);
-        }
-
+    if ((result = read_until_first_symbol(buff)) != GPS_UART_OK) {
         return result;
+    }
+
+    if ((result = read_up_to_the_end(buff)) != GPS_UART_OK) {
+        erase_buff(buff, buff_cnt);
+    }
+
+    return result;
+}
+
+gps_uart_res_t gps_uart_get_rmc_blocking(rmc_data_t *out_data) {
+    gps_uart_res_t attempt_result;    
+    
+    while (true) {
+
+        if (!uart_is_readable) {
+            // just wait a bit to try again
+            // TODO: attampt number logic maybe
+            sleep_ms(GPS_UART_READING_INTERVAL_MS);
+
+            continue;
+        }
+
+        attempt_result = uart_read_nmea_sentence(sentence_buff, NMEA_SENTENCE_MAX_LENGTH);
+        // TODO: Think how to handle this situation, maybe one need to return bad result in some cases, probably also implement attemp number
+        if (attempt_result != GPS_UART_OK) {
+            printf("Bad attempt of reading nmea sentence: %s\n", gps_uart_last_err());
+
+            continue;
+        }
+
+        int sentence_id = minmea_sentence_id(sentence_buff, false);
+
+        if (sentence_id == MINMEA_INVALID) {
+            printf("Got invalid sentence: (%s)\n", sentence_buff);
+
+            continue;
+        }
+
+        if (sentence_id != MINMEA_SENTENCE_RMC) {
+            continue;
+        }
+
+        struct minmea_sentence_rmc frame;
+        if (!minmea_parse_rmc(&frame, sentence_buff)) {
+            // TODO: Attempts
+            printf("Couldn't parse RMC sentence: (%s)\n", sentence_buff);
+
+            continue;
+        }
+
+        printf("DEBUG: Got RMC sentence raw: %s\n", sentence_buff);
+        out_data->latitude = minmea_tocoord(&frame.latitude);
+        out_data->longitude = minmea_tocoord(&frame.longitude);
+        out_data->speed = minmea_tofloat(&frame.speed);
+        out_data->time.hours = frame.time.hours;
+        out_data->time.minutes = frame.time.minutes;
+        out_data->time.seconds = frame.time.seconds;
+        out_data->has_signal = frame.valid;
+
+        return GPS_UART_OK;
     }
 }
 
