@@ -18,7 +18,7 @@ add_executable(${PROJECT_NAME}
     vendor/minmea/minmea.c
     vendor/pico-ssd1306/ssd1306.c
     gps_uart.c
-    display.c
+    disp_i2c.c
     main.c)
 
 # to get required header files in current dir

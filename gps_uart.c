@@ -9,9 +9,9 @@
 #define GPS_UART_ERR_MAX_LENGTH 100
 #define GPS_UART_READING_INTERVAL_MS 200
 
-uart_inst_t *uart_inst;
-char *sentence_buff;
-char *this_last_err;
+static uart_inst_t *uart_inst;
+static char *sentence_buff;
+static char *this_last_err;
 
 #pragma region init free
 
@@ -58,8 +58,9 @@ gps_uart_res_t uart_read_nmea_sentence(char *buff, size_t buff_cnt)
 }
 
 gps_uart_res_t gps_uart_get_rmc_blocking(rmc_data_t *out_data) {
-    gps_uart_res_t attempt_result;    
     
+    gps_uart_res_t attempt_result;    
+    struct minmea_sentence_rmc frame;
     while (true) {
 
         if (!uart_is_readable) {
@@ -89,8 +90,7 @@ gps_uart_res_t gps_uart_get_rmc_blocking(rmc_data_t *out_data) {
         if (sentence_id != MINMEA_SENTENCE_RMC) {
             continue;
         }
-
-        struct minmea_sentence_rmc frame;
+        
         if (!minmea_parse_rmc(&frame, sentence_buff)) {
             // TODO: Attempts
             printf("Couldn't parse RMC sentence: (%s)\n", sentence_buff);
@@ -183,11 +183,11 @@ static inline void erase_buff(char *buff, size_t buff_cnt)
     memset(buff, 0, buff_cnt);
 }
 
-static void write_last_err(char *err)
+static inline void write_last_err(char *err)
 {
     memset(gps_uart_last_err, 0, GPS_UART_ERR_MAX_LENGTH);
 
     // gcc has a warning that we are trying to copy something into the empty buffer
     // it's not, because we've inited buffer with malloc already
-    strncpy(err, this_last_err, GPS_UART_ERR_MAX_LENGTH);
+    strncpy(this_last_err, err, GPS_UART_ERR_MAX_LENGTH);
 }
