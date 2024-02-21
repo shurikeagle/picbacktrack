@@ -64,6 +64,7 @@ int main() {
             topbar_data.has_signal = rmc_data.has_signal;
 
             disp_i2c_update_topbar(topbar_data);
+            disp_i2c_update_coords(rmc_data.latitude, rmc_data.longitude);
         }
 
         sleep_ms(1000);
