@@ -70,8 +70,8 @@ void disp_i2c_update_coords(float lat, float lng)
         strncpy(lat_str, MAIN_COORDINATES_UNDEFINED, sizeof(MAIN_COORDINATES_UNDEFINED));
         strncpy(lng_str, MAIN_COORDINATES_UNDEFINED, sizeof(MAIN_COORDINATES_UNDEFINED));
     } else {
-        sprintf(lat_str, "%003.5f", lat);
-        sprintf(lat_str, "%003.5f", lng);
+        sprintf(lat_str, "%008.5f", lat);
+        sprintf(lat_str, "%008.5f", lng);
         printf("Formatted coords: %s, %s\n", lat_str, lng_str);
     }
 
