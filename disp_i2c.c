@@ -50,6 +50,7 @@ void disp_i2c_init(i2c_inst_t *i2c, uint sda_pin, uint scl_pin, uint baudrate)
 
     ssd1306_clear(&display);
 
+    // TODO: Init coords, init menu
     disp_i2c_update_coords(NAN, NAN);
     // TODO: Init main display with 
 }
@@ -66,17 +67,18 @@ void disp_i2c_update_coords(float lat, float lng)
     char lat_str[sizeof(MAIN_COORDINATES_UNDEFINED)];
     char lng_str[sizeof(MAIN_COORDINATES_UNDEFINED)];
 
-    if (lat == NAN || lng == NAN) {
+    // x == NAN is not correct as NAN always != NAN
+    if (isnan(lat) || isnan(lng)) {
         strncpy(lat_str, MAIN_COORDINATES_UNDEFINED, sizeof(MAIN_COORDINATES_UNDEFINED));
         strncpy(lng_str, MAIN_COORDINATES_UNDEFINED, sizeof(MAIN_COORDINATES_UNDEFINED));
     } else {
         sprintf(lat_str, "%008.5f", lat);
-        sprintf(lat_str, "%008.5f", lng);
+        sprintf(lng_str, "%008.5f", lng);
         printf("Formatted coords: %s, %s\n", lat_str, lng_str);
     }
 
     // clear both lat and lng values
-    ssd1306_clear_square(&display, MAIN_COORD_X, MAIN_LAT_Y, MAIN_COORD_WIDTH, MAIN_LNG_Y - MAIN_LAT_Y);
+    ssd1306_clear_square(&display, MAIN_COORD_X, MAIN_LAT_Y, MAIN_COORD_WIDTH, (MAIN_LNG_Y - MAIN_LAT_Y) * ONE_CHAR_HEIGHT_PX);
 
     ssd1306_draw_string(&display, MAIN_COORD_X, MAIN_LAT_Y, 1, lat_str);
     ssd1306_draw_string(&display, MAIN_COORD_X, MAIN_LNG_Y, 1, lng_str);
