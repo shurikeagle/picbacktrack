@@ -13,6 +13,11 @@ static uart_inst_t *uart_inst;
 static char *sentence_buff;
 static char *this_last_err;
 
+static gps_uart_res_t read_until_first_symbol(char *buff);
+static gps_uart_res_t read_up_to_the_end(char *buff);
+static void erase_buff(char *buff, size_t buff_cnt);
+static void write_last_err(char *err);
+
 #pragma region init free
 
 void gps_uart_init(uart_inst_t *uart, uint tx_pin, uint rx_pin, uint baudrate)
@@ -178,12 +183,12 @@ static gps_uart_res_t read_up_to_the_end(char *buff)
     return GPS_UART_OK;
 }
 
-static inline void erase_buff(char *buff, size_t buff_cnt)
+static void erase_buff(char *buff, size_t buff_cnt)
 {
     memset(buff, 0, buff_cnt);
 }
 
-static inline void write_last_err(char *err)
+static void write_last_err(char *err)
 {
     memset(gps_uart_last_err, 0, GPS_UART_ERR_MAX_LENGTH);
 

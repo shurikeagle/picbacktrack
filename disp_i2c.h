@@ -27,7 +27,3 @@ void disp_i2c_update_topbar(disp_topbar_data_t topbar_data);
 
 /// @brief Prints provided coordinates on the screen
 void disp_i2c_update_coords(float lat, float lng);
-
-static void disp_i2c_update_topbar_time(int hours, int minutes);
-
-static inline void disp_i2c_update_topbar_gps_signal(bool has_signal);

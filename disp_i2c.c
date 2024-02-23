@@ -28,12 +28,19 @@
 #define MAIN_LAT_NAME "lat:"
 #define MAIN_LNG_NAME "lng:"
 #define MAIN_COORDINATES_UNDEFINED "-xxx.xxxxx"
-#define MAIN_COORD_X ((sizeof(MAIN_LAT_NAME) * ONE_CHAR_WIDTH_PX) + ONE_CHAR_WIDTH_PX)
+#define MAIN_COORD_NAME_X 2
+#define MAIN_COORD_X (MAIN_COORD_NAME_X + (sizeof(MAIN_LAT_NAME) * ONE_CHAR_WIDTH_PX) + ONE_CHAR_WIDTH_PX)
 #define MAIN_LAT_Y 16
-#define MAIN_LNG_Y (MAIN_LAT_Y + ONE_CHAR_HEIGHT_PX + 2) // 2 is padding
+#define MAIN_LNG_Y_PADDING 2
+#define MAIN_LNG_Y (MAIN_LAT_Y + ONE_CHAR_HEIGHT_PX + MAIN_LNG_Y_PADDING)
 #define MAIN_COORD_WIDTH sizeof(MAIN_COORDINATES_UNDEFINED) * ONE_CHAR_WIDTH_PX
 
 static ssd1306_t display;
+
+static void disp_i2c_show_topbar();
+static void disp_i2c_show_main_screen();
+static void disp_i2c_update_topbar_time_no_show(int hours, int minutes);
+static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal);
 
 void disp_i2c_init(i2c_inst_t *i2c, uint sda_pin, uint scl_pin, uint baudrate)
 {
@@ -50,16 +57,17 @@ void disp_i2c_init(i2c_inst_t *i2c, uint sda_pin, uint scl_pin, uint baudrate)
 
     ssd1306_clear(&display);
 
-    // TODO: Init coords, init menu
-    disp_i2c_update_coords(NAN, NAN);
-    // TODO: Init main display with 
+    // TODO: init menu
+    disp_i2c_show_topbar();
+    disp_i2c_show_main_screen();
 }
 
 void disp_i2c_update_topbar(disp_topbar_data_t topbar_data)
 {
-    // TODO: Optimize in the 'commit changes' way
-    disp_i2c_update_topbar_time(topbar_data.time_hour, topbar_data.time_min);
-    disp_i2c_update_topbar_gps_signal(topbar_data.has_signal);
+    disp_i2c_update_topbar_time_no_show(topbar_data.time_hour, topbar_data.time_min);
+    disp_i2c_update_topbar_gps_signal_no_show(topbar_data.has_signal);
+
+    ssd1306_show(&display);
 }
 
 void disp_i2c_update_coords(float lat, float lng)
@@ -86,7 +94,27 @@ void disp_i2c_update_coords(float lat, float lng)
     ssd1306_show(&display);
 }
 
-static void disp_i2c_update_topbar_time(int hours, int minutes)
+static void disp_i2c_show_topbar()
+{
+    ssd1306_draw_string(&display, TOPBAR_TIME_X, TOPBAR_TIME_Y, 1, TOPBAR_TIME_NO_DATA);
+    ssd1306_draw_string(&display, TOPBAR_GPS_X, TOPBAR_GPS_Y, 1, TOPBAR_GPS_NO_SIGNAL);
+
+    ssd1306_show(&display);   
+}
+
+static void disp_i2c_show_main_screen()
+{
+    // show coords
+    ssd1306_draw_string(&display, MAIN_COORD_NAME_X, MAIN_LAT_Y, 1, MAIN_LAT_NAME);
+    ssd1306_draw_string(&display, MAIN_COORD_NAME_X, MAIN_LNG_Y, 1, MAIN_LNG_NAME);
+
+    ssd1306_draw_string(&display, MAIN_COORD_X, MAIN_LAT_Y, 1, MAIN_COORDINATES_UNDEFINED);
+    ssd1306_draw_string(&display, MAIN_COORD_X, MAIN_LNG_Y, 1, MAIN_COORDINATES_UNDEFINED);
+
+    ssd1306_show(&display);
+}
+
+static void disp_i2c_update_topbar_time_no_show(int hours, int minutes)
 {
     char time_str[sizeof(TOPBAR_TIME_NO_DATA)];
 
@@ -100,11 +128,9 @@ static void disp_i2c_update_topbar_time(int hours, int minutes)
     ssd1306_clear_square(&display, TOPBAR_TIME_X, TOPBAR_TIME_Y, TOPBAR_TIME_WIDTH, ONE_CHAR_HEIGHT_PX);
 
     ssd1306_draw_string(&display, TOPBAR_TIME_X, TOPBAR_TIME_Y, 1, time_str);
-
-    ssd1306_show(&display);
 }
 
-static inline void disp_i2c_update_topbar_gps_signal(bool has_signal)
+static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal)
 {
     char gps_signal_str[sizeof(TOPBAR_GPS_NO_SIGNAL)];
     if (has_signal) {
@@ -116,6 +142,4 @@ static inline void disp_i2c_update_topbar_gps_signal(bool has_signal)
     ssd1306_clear_square(&display, TOPBAR_GPS_X, TOPBAR_GPS_Y, TOPBAR_GPS_WIDTH, ONE_CHAR_HEIGHT_PX);
 
     ssd1306_draw_string(&display, TOPBAR_GPS_X, TOPBAR_GPS_Y, 1, gps_signal_str);
-
-    ssd1306_show(&display);
 }

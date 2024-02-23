@@ -51,12 +51,3 @@ gps_uart_res_t gps_uart_get_rmc_blocking(rmc_data_t *out_data);
 
 /// @brief Returns last gps_uart module error
 const char *gps_uart_last_err(void);
-
-#pragma region private funcs
-
-static gps_uart_res_t read_until_first_symbol(char *buff);
-static gps_uart_res_t read_up_to_the_end(char *buff);
-static inline void erase_buff(char *buff, size_t buff_cnt);
-static void write_last_err(char *err);
-
-#pragma endregion
