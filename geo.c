@@ -1,10 +1,10 @@
 #include <math.h>
 #include "geo.h"
 
-#define EARTH_RADIUS_METERS 6371000
+#define EARTH_RADIUS_METERS 6371e3
 #define TO_RAD (3.1415926f / 180)
 
-float get_distance_meters_haversine(float lat_a, float lng_a, float lat_b, float lng_b)
+float get_distance_haversine_meters(float lat_a, float lng_a, float lat_b, float lng_b)
 {
     float dx, dy, dz;
 	lng_a -= lng_b;
@@ -19,11 +19,16 @@ float get_distance_meters_haversine(float lat_a, float lng_a, float lat_b, float
 	return 2 * EARTH_RADIUS_METERS * asinf(sqrtf(dx * dx + dy * dy + dz * dz) / 2);
 }
 
-float get_directrion_degrees(float lat_src, float lng_src, float lat_dst, float lng_dst)
+float get_directrion_bearing_degrees(float lat_src, float lng_src, float lat_dst, float lng_dst)
 {
-    // TODO: Change to more percise formula in terms of geo
-    float dy = lat_dst - lat_src;
-    float dx = lng_dst - lng_src;
+    // TODO: This formula is not fully correct, fix to 0..360!!!
 
-    return atan2f(dy, dx) * (1 / TO_RAD);
+    float delta = lng_dst - lng_src;
+    float x = cosf(lat_dst) * sinf(delta);
+    float y = cosf(lat_src) * sinf(lat_dst) - sinf(lat_src) * cosf(lat_dst) * cosf(delta);
+    
+    float teta = atan2f(y, x) * (1 / TO_RAD);
+    
+    // to degrees
+    return (teta * (1 / TO_RAD) + 360) / 360;
 }
