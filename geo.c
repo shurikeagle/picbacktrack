@@ -21,14 +21,18 @@ float get_distance_haversine_meters(float lat_a, float lng_a, float lat_b, float
 
 float get_directrion_bearing_degrees(float lat_src, float lng_src, float lat_dst, float lng_dst)
 {
-    // TODO: This formula is not fully correct, fix to 0..360!!!
+    lat_src *= TO_RAD;
+    lng_src *= TO_RAD;
+    lat_dst *= TO_RAD;
+    lng_dst *= TO_RAD;
 
     float delta = lng_dst - lng_src;
     float x = cosf(lat_dst) * sinf(delta);
     float y = cosf(lat_src) * sinf(lat_dst) - sinf(lat_src) * cosf(lat_dst) * cosf(delta);
     
-    float teta = atan2f(y, x) * (1 / TO_RAD);
-    
-    // to degrees
-    return (teta * (1 / TO_RAD) + 360) / 360;
+    // convert to degrees
+    float bearing = atan2f(y, x) * (1 / TO_RAD);
+
+    // make 0...360 bearing fom North clockwise
+    return (int)fmodf((-bearing + 90), 360);
 }
