@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME}
     vendor/minmea/minmea.c
     vendor/pico-ssd1306/ssd1306.c
     gps_uart.c
+    geo.c
     disp_i2c.c
     main.c)
 
