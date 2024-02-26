@@ -25,15 +25,16 @@
 #define TOPBAR_GPS_Y 2
 #define TOPBAR_GPS_WIDTH (sizeof(TOPBAR_GPS_NO_SIGNAL) * ONE_CHAR_WIDTH_PX)
 
+#define MAIN_Y_PADDING 2
+
 #define MAIN_LAT_NAME "lat:"
 #define MAIN_LNG_NAME "lng:"
 #define MAIN_COORDINATES_UNDEFINED "-xxx.xxxxx"
 #define MAIN_COORD_NAME_X 2
-#define MAIN_COORD_X (MAIN_COORD_NAME_X + (sizeof(MAIN_LAT_NAME) * ONE_CHAR_WIDTH_PX) + ONE_CHAR_WIDTH_PX)
+#define MAIN_COORD_X (MAIN_COORD_NAME_X + ((sizeof(MAIN_LAT_NAME) - 1) * ONE_CHAR_WIDTH_PX)) // -1 because one need to except str end from size
 #define MAIN_LAT_Y 16
-#define MAIN_LNG_Y_PADDING 2
-#define MAIN_LNG_Y (MAIN_LAT_Y + ONE_CHAR_HEIGHT_PX + MAIN_LNG_Y_PADDING)
-#define MAIN_COORD_WIDTH sizeof(MAIN_COORDINATES_UNDEFINED) * ONE_CHAR_WIDTH_PX
+#define MAIN_LNG_Y (MAIN_LAT_Y + ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING)
+#define MAIN_COORD_WIDTH (sizeof(MAIN_COORDINATES_UNDEFINED) * ONE_CHAR_WIDTH_PX)
 
 static ssd1306_t display;
 
@@ -80,6 +81,7 @@ void disp_i2c_update_coords(float lat, float lng)
         strncpy(lat_str, MAIN_COORDINATES_UNDEFINED, sizeof(MAIN_COORDINATES_UNDEFINED));
         strncpy(lng_str, MAIN_COORDINATES_UNDEFINED, sizeof(MAIN_COORDINATES_UNDEFINED));
     } else {
+        // TODO: Test if negative value displays ok
         sprintf(lat_str, "%008.5f", lat);
         sprintf(lng_str, "%008.5f", lng);
         printf("Formatted coords: %s, %s\n", lat_str, lng_str);
