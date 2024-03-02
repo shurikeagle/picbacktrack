@@ -40,17 +40,18 @@
 #define MAIN_COORD_WIDTH (sizeof(MAIN_COORD_UNDEFINED) * ONE_CHAR_WIDTH_PX)
 
 // dst:-xxx.xxxxx, -xxx.xxxxx
-//     9999m, abs:NNE
+//     9999m, abs:NE
 #define MAIN_SAVED_POINT_NAME "dst:"
+// dst:%008.5f, %008.5f
+#define MAIN_SAVED_POINT_TEMPLATE (MAIN_SAVED_POINT_NAME MAIN_COORD_TEMPLATE "," MAIN_COORD_TEMPLATE)
 #define MAIN_SCREEN_MAX_PRINTING_DISTANCE 9999
 #define MAIN_SAVED_POINT_X (MAIN_X_PADDING + (sizeof(MAIN_SAVED_POINT_NAME) - 1) * ONE_CHAR_WIDTH_PX) // -1 because one need to except str end from size
 #define MAIN_SAVED_POINT_Y (MAIN_LNG_Y + ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING)
 #define MAIN_SAVED_POINT_COORDS_SIZE (sizeof(MAIN_SAVED_POINT_NAME) + sizeof("-xxx.xxxxx, -xxx.xxxxx") - 1) // -1 because it will be one string from two different
-#define MAIN_SAVED_POINT_COORDS_WIDTH ((MAIN_SAVED_POINT_COORDS_SIZE - 1) * ONE_CHAR_WIDTH_PX)
-#define MAIN_SAVED_POINT_DETAILS_TEMPLATE "%4dm, abs:%s"
-#define MAIN_SAVED_POINT_DETAILS_SIZE sizeof("xxxxm, abs:NNE")
+#define MAIN_SAVED_POINT_COORDS_WIDTH DISP_WIDTH - MAIN_X_PADDING
+#define MAIN_SAVED_POINT_DETAILS_TEMPLATE "%4dm,abs:%s"
+#define MAIN_SAVED_POINT_DETAILS_SIZE sizeof("xxxxm,abs:NE")
 #define MAIN_SAVED_POINT_DETAILS_Y (MAIN_SAVED_POINT_Y + ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING)
-#define MAIN_SAVED_POINT_DETAILS_WIDTH ((MAIN_SAVED_POINT_COORDS_SIZE - 1) * ONE_CHAR_WIDTH_PX) // -1 because one need to except str end from size
 
 static ssd1306_t display;
 
@@ -107,7 +108,7 @@ void disp_i2c_update_coords(float lat, float lng)
     }
 
     // clear both lat and lng values
-    ssd1306_clear_square(&display, MAIN_COORD_X, MAIN_LAT_Y, MAIN_COORD_WIDTH, (MAIN_LNG_Y - MAIN_LAT_Y) * ONE_CHAR_HEIGHT_PX);
+    ssd1306_clear_square(&display, MAIN_COORD_X, MAIN_LAT_Y, MAIN_COORD_WIDTH, (ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING) * 2);
 
     ssd1306_draw_string(&display, MAIN_COORD_X, MAIN_LAT_Y, 1, lat_str);
     ssd1306_draw_string(&display, MAIN_COORD_X, MAIN_LNG_Y, 1, lng_str);
@@ -124,17 +125,15 @@ void disp_i2c_show_saved_point(disp_saved_point_info_t point)
         point.distance_m = 9999;
     }
 
-    clear_saved_point_no_show();
-
     // build first line
-    sprintf(point_coords_line, "%s%s, %s", MAIN_SAVED_POINT_NAME, MAIN_COORD_TEMPLATE, MAIN_COORD_TEMPLATE);
-    sprintf(point_coords_line, point_coords_line, point.lat, point.lng);
-
+    sprintf(point_coords_line, MAIN_SAVED_POINT_TEMPLATE, point.lat, point.lng);
     // build second line
     sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, point.distance_m, point.absolute_direction);
 
+    clear_saved_point_no_show();
+
     ssd1306_draw_string(&display, MAIN_X_PADDING, MAIN_SAVED_POINT_Y, 1, point_coords_line);
-    ssd1306_draw_string(&display, MAIN_SAVED_POINT_X, MAIN_SAVED_POINT_DETAILS_Y, 1, point_details_line);
+    ssd1306_draw_string(&display, ONE_CHAR_WIDTH_PX, MAIN_SAVED_POINT_DETAILS_Y, 1, point_details_line);
 
     ssd1306_show(&display);
 }

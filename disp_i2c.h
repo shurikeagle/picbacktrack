@@ -17,7 +17,7 @@ typedef struct
     float lat;
     float lng;
     unsigned short distance_m;
-    char absolute_direction[4]; // e.g. N, NE, NNE, etc
+    char absolute_direction[3]; // e.g. N, NE, etc
 } disp_saved_point_info_t;
 
 // TODO: Think if one need to add free (for an uart handle)

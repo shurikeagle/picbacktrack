@@ -42,8 +42,8 @@ int main() {
     rmc_data_t rmc_data;
     gps_uart_res_t get_rmc_res;
     disp_topbar_data_t topbar_data;
-    float fake_point_lat = 40.21106;
-    float fake_point_lng = 44.55785;
+    float fake_point_lat = 40.19996;
+    float fake_point_lng = 44.56827;
     while (true) {
         // if (uart_is_writable(GPS_UART_ID)) {
         //     // poll the GPS module for a specific NMEA sentence
@@ -84,7 +84,13 @@ int main() {
                 disp_info.lng = fake_point_lng;
                 // TODO: Bad logic! Add check with short max/min values
                 disp_info.distance_m = (unsigned short) round(distance_to_fake_point);
-                strncpy(disp_info.absolute_direction, "NNW", sizeof("NNW"));
+                char direction_buff[3];
+                geo_cardinal_direction(
+                    disp_info.absolute_direction, 
+                    rmc_data.latitude,
+                    rmc_data.longitude,
+                    fake_point_lat,
+                    fake_point_lng);
 
                 disp_i2c_show_saved_point(disp_info);
             } else {
