@@ -38,16 +38,19 @@
 
 #pragma endregion
 
-// TODO: Move into separated module
-void init_button(void);
+rmc_data_t rmc_data = { .latitude = NAN, .longitude = NAN };
 
 // TODO: Move into separated module =========
-// TODO: Add struct in geo and use it instead
-float saved_point_ltd;
-float saved_point_lng;
+void init_button(void);
 
 void on_button_pressed(uint gpio, uint32_t events);
 // ==========================================
+
+void process_existing_dst_point(void);
+
+inline void printf_rmc_data(const rmc_data_t *rmc_data);
+
+inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data);
 
 int main() {
 
@@ -61,11 +64,8 @@ int main() {
 
     sleep_ms(100);
 
-    rmc_data_t rmc_data;
-    geo_point_t current_position;
     gps_uart_res_t get_rmc_res;
     disp_topbar_data_t topbar_data;
-    geo_point_t fake_point = { .lat = 40.19996, .lng = 44.56827 };
     while (true) {
         // if (uart_is_writable(GPS_UART_ID)) {
         //     // poll the GPS module for a specific NMEA sentence
@@ -77,44 +77,18 @@ int main() {
             printf("%s\n", gps_uart_last_err());
         }
         else {
-            printf("Got rmc data (%ssignal):\n\tlat: %f\n\tlon: %f\n\tspeed: %f\n\ttime: %02d:%02d:%02d\n",
-                rmc_data.has_signal ? "" : "no ",
-                rmc_data.latitude,
-                rmc_data.longitude,
-                rmc_data.speed,
-                rmc_data.time.hours,
-                rmc_data.time.minutes,
-                rmc_data.time.seconds);
+            printf_rmc_data(&rmc_data);
             
-            topbar_data.time_hour = rmc_data.time.hours;
-            topbar_data.time_min = rmc_data.time.minutes;
-            topbar_data.has_signal = rmc_data.has_signal;
-
+            set_topbar_data(&topbar_data, &rmc_data);
             disp_i2c_update_topbar(topbar_data);
+
             disp_i2c_update_coords(rmc_data.latitude, rmc_data.longitude);
 
-            // TODO: fix logic -- saved point coords must be showed always even if no gps
-            if (!isnan(rmc_data.latitude) && !isnan(rmc_data.longitude)) {                
-                current_position.lat = rmc_data.latitude;
-                current_position.lng = rmc_data.longitude;
-
-                float distance_to_fake_point = geo_distance_haversine_meters(
-                    current_position,
-                    fake_point);
-                disp_saved_point_info_t save_pt_disp_info;
-                save_pt_disp_info.lat = fake_point.lat;
-                save_pt_disp_info.lng = fake_point.lng;
-                // TODO: Bad logic! Add check with short max/min values
-                save_pt_disp_info.distance_m = (unsigned short) round(distance_to_fake_point);
-                char direction_buff[3];
-                geo_cardinal_direction(
-                    save_pt_disp_info.absolute_direction, 
-                    current_position,
-                    fake_point);
-
-                disp_i2c_show_saved_point(save_pt_disp_info);
+            // TODO: fix logic -- dst point coords must be shown always even if no gps
+            if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude) && geo_dst_point_exists()) {
+                process_existing_dst_point();
             } else {
-                disp_i2c_clear_saved_point();
+                disp_i2c_clear_dst_point();
             }
         }
 
@@ -141,6 +115,8 @@ void on_button_pressed(uint gpio, uint32_t events)
     // avoid double click caused interrupts
     uint32_t flags = save_and_disable_interrupts();
 
+    // TODO: the next logic has to be invoked on the 2nd core to avoid waiting freezes
+
     // wait required duration to check if button is pressed
     for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 2; i++)
     {
@@ -152,8 +128,49 @@ void on_button_pressed(uint gpio, uint32_t events)
         }
     }
 
-    // TODO: GET current coordinates from static field
-    // use mutex!!!
+    if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude)) {
+        geo_point_t pt_to_save = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
+        geo_save_point_as_dst(pt_to_save);
+    } else {
+        printf("Couldn't save current position as it's undefined\n");
+    }
 
     restore_interrupts(flags);
+}
+
+void process_existing_dst_point(void)
+{
+    disp_dst_point_info_t dst_pt_disp_info;
+    geo_point_t current_position = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
+    geo_point_t dst_point = geo_get_dst_point();
+
+    float distance_to_dst_point = geo_dst_point_distance_haversine_meters(current_position);
+    dst_pt_disp_info.lat = dst_point.lat;
+    dst_pt_disp_info.lng = dst_point.lng;
+    // TODO: Bad logic! Add check with short max/min values
+    dst_pt_disp_info.distance_m = (unsigned short) round(distance_to_dst_point);
+    
+    char direction_buff[3];
+    geo_dst_point_cardinal_direction(dst_pt_disp_info.absolute_direction, current_position);
+
+    disp_i2c_show_dst_point(dst_pt_disp_info);
+}
+
+inline void printf_rmc_data(const rmc_data_t *rmc_data)
+{
+    printf("Got rmc data (%ssignal):\n\tlat: %f\n\tlon: %f\n\tspeed: %f\n\ttime: %02d:%02d:%02d\n",
+        rmc_data->has_signal ? "" : "no ",
+        rmc_data->latitude,
+        rmc_data->longitude,
+        rmc_data->speed,
+        rmc_data->time.hours,
+        rmc_data->time.minutes,
+        rmc_data->time.seconds);
+}
+
+inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data)
+{
+    topbar_data->time_hour = rmc_data->time.hours;
+    topbar_data->time_min = rmc_data->time.minutes;
+    topbar_data->has_signal = rmc_data->has_signal;
 }

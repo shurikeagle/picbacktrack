@@ -1,11 +1,17 @@
 #include <math.h>
 #include <string.h>
+
+#include "pico/mutex.h"
+
 #include "geo.h"
 
 #define EARTH_RADIUS_METERS 6371e3
 #define TO_RAD (3.1415926f / 180)
 #define DIRECTION_DEVIATION_DEGREES 22 // 45 % 2
 #define CARDINAL_DIRECTION_STR_LEN 3 // Including \0
+
+static mutex_t dst_pt_mx;
+static geo_point_t dst_pt = { .lat = NAN, .lng = NAN };
 
 // TODO: Research if this formula neccessary for the distances < 10-20km
 // TODO: this formula doesn't include the difference of sea level height, a research required
@@ -27,8 +33,12 @@ float geo_distance_haversine_meters(geo_point_t a, geo_point_t b)
 	return 2 * EARTH_RADIUS_METERS * asinf(sqrtf(dx * dx + dy * dy + dz * dz) / 2);
 }
 
-// TODO: Change to usnigned short
-float geo_directrion_bearing_degrees(geo_point_t src, geo_point_t dst)
+float geo_dst_point_distance_haversine_meters(geo_point_t src)
+{
+    return geo_dst_point_exists() ? geo_distance_haversine_meters(src, dst_pt) : NAN;
+}
+
+unsigned short geo_directrion_bearing_degrees(geo_point_t src, geo_point_t dst)
 {
     src.lat *= TO_RAD;
     src.lng *= TO_RAD;
@@ -43,8 +53,7 @@ float geo_directrion_bearing_degrees(geo_point_t src, geo_point_t dst)
     float bearing = atan2f(y, x) * (1 / TO_RAD);
 
     // make 0...360 bearing from North clockwise
-    // TODO: It's not float at all
-    float res = (int)fmodf((-bearing + 90), 360);
+    unsigned short res = (unsigned short)fmodf((-bearing + 90), 360);
 
     // This solution is not good, one need to unserstand why the formula above 
     // returns negative values in the last quarter
@@ -54,7 +63,7 @@ float geo_directrion_bearing_degrees(geo_point_t src, geo_point_t dst)
 void geo_cardinal_direction(char *buff, geo_point_t src, geo_point_t dst) {
     memset(buff, 0, CARDINAL_DIRECTION_STR_LEN);
 
-    float degrees = geo_directrion_bearing_degrees(src, dst);
+    unsigned short degrees = geo_directrion_bearing_degrees(src, dst);
 
     if (degrees >= 360 - DIRECTION_DEVIATION_DEGREES || degrees <= DIRECTION_DEVIATION_DEGREES) {
         strncpy(buff, "N", 1);
@@ -75,4 +84,30 @@ void geo_cardinal_direction(char *buff, geo_point_t src, geo_point_t dst) {
     } else {
         strncpy(buff, "er", 2);
     }
+}
+
+void geo_dst_point_cardinal_direction(char *buff, geo_point_t src) {
+    return geo_cardinal_direction(buff, src, dst_pt);
+}
+
+void geo_save_point_as_dst(geo_point_t pt)
+{
+    if (!mutex_is_initialized(&dst_pt_mx)) {
+        mutex_init(&dst_pt_mx);
+    }
+
+    mutex_enter_blocking(&dst_pt_mx);
+
+    dst_pt = pt;
+
+    mutex_exit(&dst_pt_mx);
+}
+
+geo_point_t geo_get_dst_point() {
+    return dst_pt;
+}
+
+bool geo_dst_point_exists(void)
+{
+    return !isnanf(dst_pt.lat) && !isnanf(dst_pt.lng);
 }

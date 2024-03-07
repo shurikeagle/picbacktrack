@@ -11,14 +11,14 @@ typedef struct
     bool has_signal;
 } disp_topbar_data_t;
 
-/// @brief represents saved point info (coordinates, distance, direction to point)
+/// @brief represents destination point info (coordinates, distance, direction to point)
 typedef struct 
 {
     float lat;
     float lng;
     unsigned short distance_m;
     char absolute_direction[3]; // e.g. N, NE, etc
-} disp_saved_point_info_t;
+} disp_dst_point_info_t;
 
 // TODO: Think if one need to add free (for an uart handle)
 /// @brief Initializes display
@@ -34,8 +34,8 @@ void disp_i2c_update_topbar(disp_topbar_data_t topbar_data);
 /// @brief Prints current coordinates on the screen
 void disp_i2c_update_coords(float lat, float lng);
 
-/// @brief Prints saved point info
-void disp_i2c_show_saved_point(disp_saved_point_info_t point);
+/// @brief Prints destination point info
+void disp_i2c_show_dst_point(disp_dst_point_info_t point);
 
-/// @brief Clears saved point info
-void disp_i2c_clear_saved_point(void);
+/// @brief Clears dst point info
+void disp_i2c_clear_dst_point(void);

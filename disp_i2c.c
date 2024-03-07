@@ -61,7 +61,7 @@ static void disp_i2c_show_topbar();
 static void disp_i2c_show_main_screen();
 static void disp_i2c_update_topbar_time_no_show(int hours, int minutes);
 static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal);
-static void clear_saved_point_no_show(void);
+static void clear_dst_point_no_show(void);
 
 void disp_i2c_init(i2c_inst_t *i2c, uint sda_pin, uint scl_pin, uint baudrate)
 {
@@ -97,7 +97,7 @@ void disp_i2c_update_coords(float lat, float lng)
     char lng_str[sizeof(MAIN_COORD_UNDEFINED)];
 
     // x == NAN is not correct as NAN always != NAN
-    if (isnan(lat) || isnan(lng)) {
+    if (isnanf(lat) || isnanf(lng)) {
         strncpy(lat_str, MAIN_COORD_UNDEFINED, sizeof(MAIN_COORD_UNDEFINED));
         strncpy(lng_str, MAIN_COORD_UNDEFINED, sizeof(MAIN_COORD_UNDEFINED));
     } else {
@@ -116,7 +116,7 @@ void disp_i2c_update_coords(float lat, float lng)
     ssd1306_show(&display);
 }
 
-void disp_i2c_show_saved_point(disp_saved_point_info_t point)
+void disp_i2c_show_dst_point(disp_dst_point_info_t point)
 {
     char point_coords_line[MAIN_SAVED_POINT_COORDS_SIZE];
     char point_details_line[MAIN_SAVED_POINT_DETAILS_SIZE];
@@ -130,7 +130,7 @@ void disp_i2c_show_saved_point(disp_saved_point_info_t point)
     // build second line
     sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, point.distance_m, point.absolute_direction);
 
-    clear_saved_point_no_show();
+    clear_dst_point_no_show();
 
     ssd1306_draw_string(&display, MAIN_X_PADDING, MAIN_SAVED_POINT_Y, 1, point_coords_line);
     ssd1306_draw_string(&display, ONE_CHAR_WIDTH_PX, MAIN_SAVED_POINT_DETAILS_Y, 1, point_details_line);
@@ -138,9 +138,9 @@ void disp_i2c_show_saved_point(disp_saved_point_info_t point)
     ssd1306_show(&display);
 }
 
-void disp_i2c_clear_saved_point()
+void disp_i2c_clear_dst_point()
 {
-    clear_saved_point_no_show();
+    clear_dst_point_no_show();
     ssd1306_show(&display);
 }
 
@@ -194,7 +194,7 @@ static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal)
     ssd1306_draw_string(&display, TOPBAR_GPS_X, TOPBAR_GPS_Y, 1, gps_signal_str);
 }
 
-static void clear_saved_point_no_show()
+static void clear_dst_point_no_show()
 {
     ssd1306_clear_square(&display, MAIN_X_PADDING, MAIN_SAVED_POINT_Y, MAIN_SAVED_POINT_COORDS_WIDTH, (ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING) * 2);
 }
