@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "hardware/timer.h"
 #include "hardware/sync.h"
 
 #include "gps_uart.h"
@@ -63,10 +62,10 @@ int main() {
     sleep_ms(100);
 
     rmc_data_t rmc_data;
+    geo_point_t current_position;
     gps_uart_res_t get_rmc_res;
     disp_topbar_data_t topbar_data;
-    float fake_point_lat = 40.19996;
-    float fake_point_lng = 44.56827;
+    geo_point_t fake_point = { .lat = 40.19996, .lng = 44.56827 };
     while (true) {
         // if (uart_is_writable(GPS_UART_ID)) {
         //     // poll the GPS module for a specific NMEA sentence
@@ -95,25 +94,23 @@ int main() {
             disp_i2c_update_coords(rmc_data.latitude, rmc_data.longitude);
 
             // TODO: fix logic -- saved point coords must be showed always even if no gps
-            if (!isnan(rmc_data.latitude) && !isnan(rmc_data.longitude)) {
+            if (!isnan(rmc_data.latitude) && !isnan(rmc_data.longitude)) {                
+                current_position.lat = rmc_data.latitude;
+                current_position.lng = rmc_data.longitude;
 
                 float distance_to_fake_point = geo_distance_haversine_meters(
-                    rmc_data.latitude,
-                    rmc_data.longitude,
-                    fake_point_lat,
-                    fake_point_lng);
+                    current_position,
+                    fake_point);
                 disp_saved_point_info_t save_pt_disp_info;
-                save_pt_disp_info.lat = fake_point_lat;
-                save_pt_disp_info.lng = fake_point_lng;
+                save_pt_disp_info.lat = fake_point.lat;
+                save_pt_disp_info.lng = fake_point.lng;
                 // TODO: Bad logic! Add check with short max/min values
                 save_pt_disp_info.distance_m = (unsigned short) round(distance_to_fake_point);
                 char direction_buff[3];
                 geo_cardinal_direction(
                     save_pt_disp_info.absolute_direction, 
-                    rmc_data.latitude,
-                    rmc_data.longitude,
-                    fake_point_lat,
-                    fake_point_lng);
+                    current_position,
+                    fake_point);
 
                 disp_i2c_show_saved_point(save_pt_disp_info);
             } else {
@@ -147,7 +144,7 @@ void on_button_pressed(uint gpio, uint32_t events)
     // wait required duration to check if button is pressed
     for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 2; i++)
     {
-        busy_wait_ms(500);
+        sleep_ms(500);
         if (gpio_get(gpio)) {
             // do nothing as button was released
             restore_interrupts(flags);

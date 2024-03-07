@@ -11,32 +11,33 @@
 // TODO: this formula doesn't include the difference of sea level height, a research required
 //  Such task is very complex, because, for example, 100m height of a first point and 200m height of a second point
 //  doesn't guarantee that the difference is just 100m height (because there might be some mountains between these points)
-float geo_distance_haversine_meters(float lat_a, float lng_a, float lat_b, float lng_b)
+
+float geo_distance_haversine_meters(geo_point_t a, geo_point_t b)
 {
     float dx, dy, dz;
-	lng_a -= lng_b;
-	lng_a *= TO_RAD;
-    lat_a *= TO_RAD;
-    lat_b *= TO_RAD;
+	a.lng -= b.lng;
+	a.lng *= TO_RAD;
+    a.lat *= TO_RAD;
+    b.lat *= TO_RAD;
 
-	dz = sinf(lat_a) - sinf(lat_b);
-	dx = cosf(lng_a) * cosf(lat_a) - cosf(lat_b);
-	dy = sinf(lng_a) * cosf(lat_a);
+	dz = sinf(a.lat) - sinf(b.lat);
+	dx = cosf(a.lng) * cosf(a.lat) - cosf(b.lat);
+	dy = sinf(a.lng) * cosf(a.lat);
 
 	return 2 * EARTH_RADIUS_METERS * asinf(sqrtf(dx * dx + dy * dy + dz * dz) / 2);
 }
 
 // TODO: Change to usnigned short
-float geo_directrion_bearing_degrees(float lat_src, float lng_src, float lat_dst, float lng_dst)
+float geo_directrion_bearing_degrees(geo_point_t src, geo_point_t dst)
 {
-    lat_src *= TO_RAD;
-    lng_src *= TO_RAD;
-    lat_dst *= TO_RAD;
-    lng_dst *= TO_RAD;
+    src.lat *= TO_RAD;
+    src.lng *= TO_RAD;
+    dst.lat *= TO_RAD;
+    dst.lng *= TO_RAD;
 
-    float delta = lng_dst - lng_src;
-    float x = cosf(lat_dst) * sinf(delta);
-    float y = cosf(lat_src) * sinf(lat_dst) - sinf(lat_src) * cosf(lat_dst) * cosf(delta);
+    float delta = dst.lng - src.lng;
+    float x = cosf(dst.lat) * sinf(delta);
+    float y = cosf(src.lat) * sinf(dst.lat) - sinf(src.lat) * cosf(dst.lat) * cosf(delta);
     
     // convert to degrees
     float bearing = atan2f(y, x) * (1 / TO_RAD);
@@ -50,10 +51,10 @@ float geo_directrion_bearing_degrees(float lat_src, float lng_src, float lat_dst
     return res >= 0 ? res : 360 + res;
 }
 
-void geo_cardinal_direction(char *buff, float lat_src, float lng_src, float lat_dst, float lng_dst) {
+void geo_cardinal_direction(char *buff, geo_point_t src, geo_point_t dst) {
     memset(buff, 0, CARDINAL_DIRECTION_STR_LEN);
 
-    float degrees = geo_directrion_bearing_degrees(lat_src, lng_src, lat_dst, lng_dst);
+    float degrees = geo_directrion_bearing_degrees(src, dst);
 
     if (degrees >= 360 - DIRECTION_DEVIATION_DEGREES || degrees <= DIRECTION_DEVIATION_DEGREES) {
         strncpy(buff, "N", 1);
