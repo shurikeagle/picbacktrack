@@ -120,7 +120,7 @@ void on_button_pressed(uint gpio, uint32_t events)
     // wait required duration to check if button is pressed
     for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 2; i++)
     {
-        sleep_ms(500);
+        busy_wait_ms(500);
         if (gpio_get(gpio)) {
             // do nothing as button was released
             restore_interrupts(flags);
