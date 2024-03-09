@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "hardware/sync.h"
+#include "pico/multicore.h"
 
 #include "gps_uart.h"
 #include "geo.h"
@@ -26,7 +26,7 @@
 #define DISPLAY_I2C_ID i2c0
 #define DISPLAY_I2C_SDA_GP 20
 #define DISPLAY_I2C_SCL_GP 21
-// TODO: Thinl probably one need to decrease
+// TODO: Think probably one need to decrease
 #define DISPLAY_BAUDRATE 40000
 
 #pragma endregion
@@ -41,9 +41,7 @@
 rmc_data_t rmc_data = { .latitude = NAN, .longitude = NAN };
 
 // TODO: Move into separated module =========
-void init_button(void);
-
-void on_button_pressed(uint gpio, uint32_t events);
+void init_controls(void);
 // ==========================================
 
 void process_existing_dst_point(void);
@@ -51,6 +49,40 @@ void process_existing_dst_point(void);
 inline void printf_rmc_data(const rmc_data_t *rmc_data);
 
 inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data);
+
+static inline bool button_pressed() {
+    return !gpio_get(BUTTON_PIN);
+}
+
+/// @brief Controls processing
+/// This core uses loop logic for controls instead of interrupts to avoid such issues as multiple interrupts / multiple control actions
+void core1_main() {
+    while (true)
+    {
+        // check if button pressed
+        if (button_pressed()) {
+            // wait required duration to check if button is still pressed to avoid occassional clicks
+            for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 2; i++)
+            {
+                busy_wait_ms(500);
+                if (!button_pressed()) {
+                    // do nothing as button was released
+                    goto continue_main;
+                }
+            }
+
+            // check if rmc_data is defined
+            if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude)) {
+                geo_point_t pt_to_save = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
+                geo_save_point_as_dst(pt_to_save);
+            } else {
+                // TODO: Think how to notify user that current position is not defined
+            }
+        }
+
+        continue_main:;
+    }    
+}
 
 int main() {
 
@@ -60,18 +92,13 @@ int main() {
 
     disp_i2c_init(DISPLAY_I2C_ID, DISPLAY_I2C_SDA_GP, DISPLAY_I2C_SCL_GP, DISPLAY_BAUDRATE);
 
-    init_button();
+    init_controls();
 
     sleep_ms(100);
 
     gps_uart_res_t get_rmc_res;
     disp_topbar_data_t topbar_data;
     while (true) {
-        // if (uart_is_writable(GPS_UART_ID)) {
-        //     // poll the GPS module for a specific NMEA sentence
-        //     uart_puts(GPS_UART_ID, "$EIGPQ,RMC*3A\r\n");
-        // }
-        
         get_rmc_res = gps_uart_get_rmc_blocking(&rmc_data);
         if (get_rmc_res != GPS_UART_OK) {
             printf("%s\n", gps_uart_last_err());
@@ -84,7 +111,7 @@ int main() {
 
             disp_i2c_update_coords(rmc_data.latitude, rmc_data.longitude);
 
-            // TODO: fix logic -- dst point coords must be shown always even if no gps
+            // TODO: fix logic -- dst point coords must be shown always even if gps is lost
             if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude) && geo_dst_point_exists()) {
                 process_existing_dst_point();
             } else {
@@ -96,46 +123,15 @@ int main() {
     }
 }
 
-void init_button(void)
+void init_controls()
 {
     // init button
     gpio_init(BUTTON_PIN);
     gpio_set_dir(BUTTON_PIN, GPIO_IN);
     gpio_pull_up(BUTTON_PIN);
 
-    gpio_set_irq_enabled_with_callback(
-        BUTTON_PIN,
-        GPIO_IRQ_EDGE_FALL, 
-        1,
-        on_button_pressed);
-}
-
-void on_button_pressed(uint gpio, uint32_t events)
-{
-    // avoid double click caused interrupts
-    uint32_t flags = save_and_disable_interrupts();
-
-    // TODO: the next logic has to be invoked on the 2nd core to avoid waiting freezes
-
-    // wait required duration to check if button is pressed
-    for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 2; i++)
-    {
-        busy_wait_ms(500);
-        if (gpio_get(gpio)) {
-            // do nothing as button was released
-            restore_interrupts(flags);
-            return;
-        }
-    }
-
-    if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude)) {
-        geo_point_t pt_to_save = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
-        geo_save_point_as_dst(pt_to_save);
-    } else {
-        printf("Couldn't save current position as it's undefined\n");
-    }
-
-    restore_interrupts(flags);
+    // run controls logic on the second core
+    multicore_launch_core1(&core1_main);
 }
 
 void process_existing_dst_point(void)

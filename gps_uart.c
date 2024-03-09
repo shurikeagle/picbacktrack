@@ -192,7 +192,5 @@ static void write_last_err(char *err)
 {
     memset(gps_uart_last_err, 0, GPS_UART_ERR_MAX_LENGTH);
 
-    // gcc has a warning that we are trying to copy something into the empty buffer
-    // it's not, because we've inited buffer with malloc already
     strncpy(this_last_err, err, GPS_UART_ERR_MAX_LENGTH);
 }
