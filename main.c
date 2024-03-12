@@ -34,7 +34,7 @@
 #pragma region controls
 
 #define BUTTON_PIN 10
-#define SAVE_POINT_BTN_DURATION_SEC 3
+#define SAVE_POINT_BTN_DURATION_SEC 2
 
 #pragma endregion
 
@@ -45,14 +45,9 @@ void init_controls(void);
 // ==========================================
 
 void process_existing_dst_point(void);
-
 inline void printf_rmc_data(const rmc_data_t *rmc_data);
-
 inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data);
-
-static inline bool button_pressed() {
-    return !gpio_get(BUTTON_PIN);
-}
+static inline bool button_pressed();
 
 /// @brief Controls processing
 /// This core uses loop logic for controls instead of interrupts to avoid such issues as multiple interrupts / multiple control actions
@@ -62,9 +57,9 @@ void core1_main() {
         // check if button pressed
         if (button_pressed()) {
             // wait required duration to check if button is still pressed to avoid occassional clicks
-            for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 2; i++)
+            for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 4; i++)
             {
-                busy_wait_ms(500);
+                busy_wait_ms(SAVE_POINT_BTN_DURATION_SEC / 4);
                 if (!button_pressed()) {
                     // do nothing as button was released
                     goto continue_main;
@@ -169,4 +164,9 @@ inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *r
     topbar_data->time_hour = rmc_data->time.hours;
     topbar_data->time_min = rmc_data->time.minutes;
     topbar_data->has_signal = rmc_data->has_signal;
+}
+
+inline bool button_pressed()
+{
+    return !gpio_get(BUTTON_PIN);
 }
