@@ -45,8 +45,8 @@ void init_controls(void);
 // ==========================================
 
 static void process_existing_dst_point(void);
-static inline void printf_rmc_data(const rmc_data_t *rmc_data);
-static inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data);
+static inline void printf_rmc_data();
+static inline void set_topbar_data(disp_topbar_data_t *topbar_data);
 static inline bool button_pressed();
 
 /// @brief Controls processing
@@ -102,9 +102,9 @@ int main() {
             printf("%s\n", gps_uart_last_err());
         }
         else {
-            printf_rmc_data(&rmc_data);
+            printf_rmc_data();
             
-            set_topbar_data(&topbar_data, &rmc_data);
+            set_topbar_data(&topbar_data);
             disp_i2c_update_topbar(topbar_data);
 
             disp_i2c_update_coords(rmc_data.latitude, rmc_data.longitude);
@@ -147,23 +147,23 @@ void process_existing_dst_point(void)
     disp_i2c_show_dst_point(&disp_dst_pt_info);
 }
 
-inline void printf_rmc_data(const rmc_data_t *rmc_data)
+inline void printf_rmc_data()
 {
     printf("Got rmc data (%ssignal):\n\tlat: %f\n\tlon: %f\n\tspeed: %f\n\ttime: %02d:%02d:%02d\n",
-        rmc_data->has_signal ? "" : "no ",
-        rmc_data->latitude,
-        rmc_data->longitude,
-        rmc_data->speed,
-        rmc_data->time.hours,
-        rmc_data->time.minutes,
-        rmc_data->time.seconds);
+        rmc_data.has_signal ? "" : "no ",
+        rmc_data.latitude,
+        rmc_data.longitude,
+        rmc_data.speed,
+        rmc_data.time.hours,
+        rmc_data.time.minutes,
+        rmc_data.time.seconds);
 }
 
-inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data)
+inline void set_topbar_data(disp_topbar_data_t *topbar_data)
 {
-    topbar_data->time_hour = rmc_data->time.hours;
-    topbar_data->time_min = rmc_data->time.minutes;
-    topbar_data->has_signal = rmc_data->has_signal;
+    topbar_data->time_hour = rmc_data.time.hours;
+    topbar_data->time_min = rmc_data.time.minutes;
+    topbar_data->has_signal = rmc_data.has_signal;
 }
 
 inline bool button_pressed()
