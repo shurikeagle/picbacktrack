@@ -136,7 +136,11 @@ geo_point_t geo_get_dst_point() {
     return dst_pt;
 }
 
+bool geo_point_is_valid(float lat, float lng) {
+    return !isnanf(lat) && !isnanf(lng);
+}
+
 bool geo_dst_point_exists(void)
 {
-    return !isnanf(dst_pt.lat) && !isnanf(dst_pt.lng);
+    return geo_point_is_valid(dst_pt.lat, dst_pt.lng);
 }

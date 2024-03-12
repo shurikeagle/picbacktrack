@@ -47,6 +47,9 @@ void geo_save_point_as_dst(geo_point_t pt);
 /// @brief Returns destination point
 geo_point_t geo_get_dst_point(void);
 
-/// @brief Checks if any dst point was saved before
+/// @brief Checks if point is valid
+bool geo_point_is_valid(float lat, float lng);
+
+/// @brief Checks if any dst point was saved before and has valid values
 bool geo_dst_point_exists(void);
 

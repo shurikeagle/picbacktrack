@@ -67,7 +67,7 @@ void core1_main() {
             }
 
             // check if rmc_data is defined
-            if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude)) {
+            if (geo_point_is_valid(rmc_data.latitude, rmc_data.longitude)) {
                 geo_point_t pt_to_save = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
                 geo_save_point_as_dst(pt_to_save);
             } else {
@@ -110,7 +110,7 @@ int main() {
             disp_i2c_update_coords(rmc_data.latitude, rmc_data.longitude);
 
             // TODO: fix logic -- dst point coords must be shown always even if gps is lost
-            if (!isnanf(rmc_data.latitude) && !isnanf(rmc_data.longitude) && geo_dst_point_exists()) {
+            if (geo_point_is_valid(rmc_data.latitude, rmc_data.longitude) && geo_dst_point_exists()) {
                 process_existing_dst_point();
             } else {
                 disp_i2c_clear_dst_point();
