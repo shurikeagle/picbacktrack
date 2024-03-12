@@ -26,7 +26,7 @@
 #define DISPLAY_I2C_ID i2c0
 #define DISPLAY_I2C_SDA_GP 20
 #define DISPLAY_I2C_SCL_GP 21
-// TODO: Think probably one need to decrease
+// TODO: Think probably one should to decrease
 #define DISPLAY_BAUDRATE 40000
 
 #pragma endregion
@@ -89,6 +89,9 @@ int main() {
 
     init_controls();
 
+    // run controls logic on the second core
+    multicore_launch_core1(&core1_main);
+
     sleep_ms(100);
 
     gps_uart_res_t get_rmc_res;
@@ -124,27 +127,24 @@ void init_controls()
     gpio_init(BUTTON_PIN);
     gpio_set_dir(BUTTON_PIN, GPIO_IN);
     gpio_pull_up(BUTTON_PIN);
-
-    // run controls logic on the second core
-    multicore_launch_core1(&core1_main);
 }
 
 void process_existing_dst_point(void)
 {
-    disp_dst_point_info_t dst_pt_disp_info;
+    disp_dst_point_info_t disp_dst_pt_info;
     geo_point_t current_position = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
     geo_point_t dst_point = geo_get_dst_point();
 
     float distance_to_dst_point = geo_dst_point_distance_haversine_meters(current_position);
-    dst_pt_disp_info.lat = dst_point.lat;
-    dst_pt_disp_info.lng = dst_point.lng;
+    disp_dst_pt_info.lat = dst_point.lat;
+    disp_dst_pt_info.lng = dst_point.lng;
     // TODO: Bad logic! Add check with short max/min values
-    dst_pt_disp_info.distance_m = (unsigned short) round(distance_to_dst_point);
+    disp_dst_pt_info.distance_m = (unsigned short) round(distance_to_dst_point);
     
     char direction_buff[3];
-    geo_dst_point_cardinal_direction(dst_pt_disp_info.absolute_direction, current_position);
+    geo_dst_point_cardinal_direction(disp_dst_pt_info.absolute_direction, current_position);
 
-    disp_i2c_show_dst_point(dst_pt_disp_info);
+    disp_i2c_show_dst_point(disp_dst_pt_info);
 }
 
 inline void printf_rmc_data(const rmc_data_t *rmc_data)
