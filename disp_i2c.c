@@ -49,8 +49,8 @@
 #define MAIN_SAVED_POINT_Y (MAIN_LNG_Y + ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING)
 #define MAIN_SAVED_POINT_COORDS_SIZE (sizeof(MAIN_SAVED_POINT_NAME) + sizeof("-xxx.xxxxx, -xxx.xxxxx") - 1) // -1 because it will be one string from two different
 #define MAIN_SAVED_POINT_COORDS_WIDTH DISP_WIDTH - MAIN_X_PADDING
-#define MAIN_SAVED_POINT_DETAILS_TEMPLATE "%4dm,abs:%s"
-#define MAIN_SAVED_POINT_DETAILS_SIZE sizeof("xxxxm,abs:NE")
+#define MAIN_SAVED_POINT_DETAILS_TEMPLATE "%4dm,abs:%s,rel:%s"
+#define MAIN_SAVED_POINT_DETAILS_SIZE sizeof("xxxxm,abs:NE,rel:NE")
 #define MAIN_SAVED_POINT_DETAILS_Y (MAIN_SAVED_POINT_Y + ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING)
 
 static ssd1306_t display;
@@ -128,7 +128,11 @@ void disp_i2c_show_dst_point(const disp_dst_point_info_t *point)
     // build first line
     sprintf(point_coords_line, MAIN_SAVED_POINT_TEMPLATE, point->lat, point->lng);
     // build second line
-    sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, point->absolute_direction);
+    if (point->relative_direction[0] != '\0') {
+        sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, point->relative_direction);
+    } else {
+        sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, "?");
+    }
 
     clear_dst_point_no_show();
 

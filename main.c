@@ -39,6 +39,8 @@
 #pragma endregion
 
 rmc_data_t rmc_data = { .latitude = NAN, .longitude = NAN };
+geo_point_t current_position = { .lat = NAN, .lng = NAN };
+geo_point_t prev_position = { .lat = NAN, .lng = NAN };
 
 // TODO: Move into separated module =========
 void init_controls(void);
@@ -46,6 +48,7 @@ void init_controls(void);
 
 static void process_existing_dst_point(void);
 static inline void printf_rmc_data();
+static inline void update_position();
 static inline void set_topbar_data(disp_topbar_data_t *topbar_data);
 static inline bool button_pressed();
 
@@ -104,6 +107,8 @@ int main() {
         else {
             printf_rmc_data();
             
+            update_position();
+
             set_topbar_data(&topbar_data);
             disp_i2c_update_topbar(topbar_data);
 
@@ -132,7 +137,6 @@ void init_controls()
 void process_existing_dst_point(void)
 {
     disp_dst_point_info_t disp_dst_pt_info;
-    geo_point_t current_position = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
     geo_point_t dst_point = geo_get_dst_point();
 
     float distance_to_dst_point = geo_dst_point_distance_haversine_meters(current_position);
@@ -141,8 +145,12 @@ void process_existing_dst_point(void)
     // TODO: Bad logic! Add check with short max/min values
     disp_dst_pt_info.distance_m = (unsigned short) round(distance_to_dst_point);
     
-    char direction_buff[3];
     geo_dst_point_cardinal_direction(disp_dst_pt_info.absolute_direction, current_position);
+    if (geo_point_is_valid(prev_position.lat, prev_position.lng)) {
+        geo_dst_point_relative_direction(disp_dst_pt_info.relative_direction, prev_position, current_position);
+    } else { // handle situation when this is the first cycle with defined position
+        strncpy(disp_dst_pt_info.relative_direction, "", 1);
+    }
 
     disp_i2c_show_dst_point(&disp_dst_pt_info);
 }
@@ -157,6 +165,14 @@ inline void printf_rmc_data()
         rmc_data.time.hours,
         rmc_data.time.minutes,
         rmc_data.time.seconds);
+}
+
+inline void update_position()
+{
+    prev_position.lat = current_position.lat;
+    prev_position.lng = current_position.lng;
+    current_position.lat = rmc_data.latitude;
+    current_position.lng = rmc_data.longitude;
 }
 
 inline void set_topbar_data(disp_topbar_data_t *topbar_data)

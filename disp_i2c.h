@@ -18,6 +18,7 @@ typedef struct
     float lng;
     unsigned short distance_m;
     char absolute_direction[3]; // e.g. N, NE, etc
+    char relative_direction[3];
 } disp_dst_point_info_t;
 
 // TODO: Think if one need to add free (for an uart handle)
