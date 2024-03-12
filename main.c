@@ -44,9 +44,9 @@ rmc_data_t rmc_data = { .latitude = NAN, .longitude = NAN };
 void init_controls(void);
 // ==========================================
 
-void process_existing_dst_point(void);
-inline void printf_rmc_data(const rmc_data_t *rmc_data);
-inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data);
+static void process_existing_dst_point(void);
+static inline void printf_rmc_data(const rmc_data_t *rmc_data);
+static inline void set_topbar_data(disp_topbar_data_t *topbar_data, const rmc_data_t *rmc_data);
 static inline bool button_pressed();
 
 /// @brief Controls processing

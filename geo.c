@@ -65,6 +65,39 @@ void geo_cardinal_direction(char *buff, geo_point_t src, geo_point_t dst) {
 
     unsigned short degrees = geo_directrion_bearing_degrees(src, dst);
 
+    geo_direction_by_degrees(buff, degrees);
+}
+
+void geo_dst_point_cardinal_direction(char *buff, geo_point_t src) {
+    if (geo_dst_point_exists()) {
+        return geo_cardinal_direction(buff, src, dst_pt);
+    }
+
+    strncpy(buff, "er", 2);
+}
+
+void geo_relative_direction(char *buff, geo_point_t src_prev, geo_point_t src_current, geo_point_t dst) {
+    short prev_to_current_bearing = geo_directrion_bearing_degrees(src_prev, src_current);
+    short current_to_dst_bearing = geo_directrion_bearing_degrees(src_current, dst);
+
+    short result = current_to_dst_bearing - prev_to_current_bearing;
+    if (result < 0) {
+        result = 360 - result;
+    }
+
+    geo_direction_by_degrees(buff, (unsigned short) result);
+}
+
+void geo_dst_point_relative_direction(char *buff, geo_point_t src_prev, geo_point_t src_current) {
+    if (geo_dst_point_exists()) {
+        return geo_relative_direction(buff, src_prev, src_current, dst_pt);
+    }
+
+    strncpy(buff, "er", 2);
+}
+
+void geo_direction_by_degrees(char *buff, unsigned short degrees)
+{
     if (degrees >= 360 - DIRECTION_DEVIATION_DEGREES || degrees <= DIRECTION_DEVIATION_DEGREES) {
         strncpy(buff, "N", 1);
     } else if (degrees <= 45 + DIRECTION_DEVIATION_DEGREES) {
@@ -84,10 +117,6 @@ void geo_cardinal_direction(char *buff, geo_point_t src, geo_point_t dst) {
     } else {
         strncpy(buff, "er", 2);
     }
-}
-
-void geo_dst_point_cardinal_direction(char *buff, geo_point_t src) {
-    return geo_cardinal_direction(buff, src, dst_pt);
 }
 
 void geo_save_point_as_dst(geo_point_t pt)
