@@ -116,19 +116,19 @@ void disp_i2c_update_coords(float lat, float lng)
     ssd1306_show(&display);
 }
 
-void disp_i2c_show_dst_point(disp_dst_point_info_t point)
+void disp_i2c_show_dst_point(const disp_dst_point_info_t *point)
 {
     char point_coords_line[MAIN_SAVED_POINT_COORDS_SIZE];
     char point_details_line[MAIN_SAVED_POINT_DETAILS_SIZE];
 
-    if (point.distance_m > 9999) {
-        point.distance_m = 9999;
-    }
+    unsigned short disp_distance = point->distance_m <= MAIN_SCREEN_MAX_PRINTING_DISTANCE ?
+        point->distance_m :
+        MAIN_SCREEN_MAX_PRINTING_DISTANCE;
 
     // build first line
-    sprintf(point_coords_line, MAIN_SAVED_POINT_TEMPLATE, point.lat, point.lng);
+    sprintf(point_coords_line, MAIN_SAVED_POINT_TEMPLATE, point->lat, point->lng);
     // build second line
-    sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, point.distance_m, point.absolute_direction);
+    sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, point->absolute_direction);
 
     clear_dst_point_no_show();
 

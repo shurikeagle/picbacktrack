@@ -35,7 +35,7 @@ void disp_i2c_update_topbar(disp_topbar_data_t topbar_data);
 void disp_i2c_update_coords(float lat, float lng);
 
 /// @brief Prints destination point info
-void disp_i2c_show_dst_point(disp_dst_point_info_t point);
+void disp_i2c_show_dst_point(const disp_dst_point_info_t *point);
 
 /// @brief Clears dst point info
 void disp_i2c_clear_dst_point(void);

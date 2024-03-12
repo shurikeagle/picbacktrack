@@ -144,7 +144,7 @@ void process_existing_dst_point(void)
     char direction_buff[3];
     geo_dst_point_cardinal_direction(disp_dst_pt_info.absolute_direction, current_position);
 
-    disp_i2c_show_dst_point(disp_dst_pt_info);
+    disp_i2c_show_dst_point(&disp_dst_pt_info);
 }
 
 inline void printf_rmc_data(const rmc_data_t *rmc_data)
