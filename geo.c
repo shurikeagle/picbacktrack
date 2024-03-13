@@ -4,6 +4,7 @@
 #include "pico/mutex.h"
 
 #include "geo.h"
+#include "flashmem.h"
 
 #define EARTH_RADIUS_METERS 6371e3
 #define TO_RAD (3.1415926f / 180)
@@ -11,7 +12,21 @@
 #define CARDINAL_DIRECTION_STR_LEN 3 // Including \0
 
 static mutex_t dst_pt_mx;
-static geo_point_t dst_pt = { .lat = NAN, .lng = NAN };
+static geo_point_t dst_pt;
+
+void geo_init(void)
+{
+    float dst_lat, dst_lng;
+
+    bool has_inflashmem_dst = flashmem_get_dst_point(&dst_lat, &dst_lng);
+    if (has_inflashmem_dst) {
+        dst_pt.lat = dst_lat;
+        dst_pt.lng = dst_lng;
+    } else {
+        dst_pt.lat = NAN;
+        dst_pt.lng = NAN;
+    }
+}
 
 // TODO: Research if this formula neccessary for the distances < 10-20km
 // TODO: this formula doesn't include the difference of sea level height, a research required
@@ -128,6 +143,7 @@ void geo_save_point_as_dst(geo_point_t pt)
     mutex_enter_blocking(&dst_pt_mx);
 
     dst_pt = pt;
+    flashmem_save_dst_point(pt.lat, pt.lng);
 
     mutex_exit(&dst_pt_mx);
 }

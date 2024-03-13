@@ -6,6 +6,9 @@ typedef struct {
     float lng;
 } geo_point_t;
 
+/// @brief Initializes geo module
+void geo_init(void);
+
 /// @brief Calculates a distance in meters between two geo points by Haversine formula
 float geo_distance_haversine_meters(geo_point_t a, geo_point_t b);
 

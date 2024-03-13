@@ -85,13 +85,11 @@ void core1_main() {
 int main() {
 
     stdio_init_all();
-
     gps_uart_init(GPS_UART_ID, GPS_UART_TX_PIN, GPS_UART_RX_PIN, BE_220_BAUDRATE);
-
+    geo_init();
     disp_i2c_init(DISPLAY_I2C_ID, DISPLAY_I2C_SDA_GP, DISPLAY_I2C_SCL_GP, DISPLAY_BAUDRATE);
-
     init_controls();
-
+    
     // run controls logic on the second core
     multicore_launch_core1(&core1_main);
 
