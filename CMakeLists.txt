@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}
     vendor/pico-ssd1306/ssd1306.c
     gps_uart.c
     geo.c
+    flashmem.c
     disp_i2c.c
     main.c)
 
