@@ -129,9 +129,9 @@ void disp_i2c_show_dst_point(const disp_dst_point_info_t *point)
     sprintf(point_coords_line, MAIN_SAVED_POINT_TEMPLATE, point->lat, point->lng);
     // build second line
     if (point->relative_direction[0] != '\0') {
-        sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, point->relative_direction);
+        sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, point->absolute_direction, point->relative_direction);
     } else {
-        sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, "?");
+        sprintf(point_details_line, MAIN_SAVED_POINT_DETAILS_TEMPLATE, disp_distance, point->absolute_direction, "?");
     }
 
     clear_dst_point_no_show();

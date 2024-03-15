@@ -1,10 +1,3 @@
-// define flash size for custom rp2040 based board
-#define FLASH_SIZE 16 * 1024 * 1024
-
-#ifndef FLASH_SIZE
-#define FLASH_SIZE PICO_FLASH_SIZE_BYTES
-#endif
-
 /// @brief Saves destination point with provided coordinates into flash
 void flashmem_save_dst_point(float lat, float lng);
 
