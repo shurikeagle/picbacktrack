@@ -1,8 +1,9 @@
-#include "hardware/flash.h"
-#include "flashmem.h"
+#include <string.h>
 
-// define flash size for custom rp2040 based board
-#define FLASH_SIZE 16 * 1024 * 1024
+#include "hardware/flash.h"
+#include "hardware/sync.h"
+
+#include "flashmem.h"
 
 #ifndef FLASH_SIZE
 #define FLASH_SIZE PICO_FLASH_SIZE_BYTES
@@ -23,21 +24,34 @@ typedef struct
 void flashmem_save_dst_point(float lat, float lng)
 {
     dst_point_inmem_t dst_info = { .dst_point_exists = DST_POINT_EXISTS_CODE, .lat = lat, .lng = lng };
+    uint8_t *data_ptr = (uint8_t *)&dst_info;
+
+    uint32_t interrupt_status = save_and_disable_interrupts();
 
     flash_range_erase(DST_POINT_DATA_OFFSET, FLASH_SECTOR_SIZE);
-    flash_range_program(DST_POINT_DATA_OFFSET, (uint8_t *)&dst_info, FLASH_SECTOR_SIZE);
+    flash_range_program(DST_POINT_DATA_OFFSET, data_ptr, FLASH_PAGE_SIZE);
+
+    restore_interrupts(interrupt_status);
+}
+
+void flashmem_remove_dst_point()
+{
+    flash_range_erase(DST_POINT_DATA_OFFSET, FLASH_SECTOR_SIZE);
 }
 
 bool flashmem_get_dst_point(float *const lat_out, float *const lng_out)
 {
-    dst_point_inmem_t *dst_point_info_ptr = (dst_point_inmem_t *)(XIP_BASE + DST_POINT_DATA_OFFSET);
+    dst_point_inmem_t dst_info;
+    
+    uint8_t *dst_point_ptr = (uint8_t *)(XIP_BASE + DST_POINT_DATA_OFFSET);    
+    memcpy(&dst_info, dst_point_ptr, sizeof(dst_info));    
 
-    if (dst_point_info_ptr->dst_point_exists != DST_POINT_EXISTS_CODE) {
+    if (dst_info.dst_point_exists != DST_POINT_EXISTS_CODE) {
         return false;
     }
 
-    *lat_out = dst_point_info_ptr->lat;
-    *lng_out = dst_point_info_ptr->lng;
+    *lat_out = dst_info.lat;
+    *lng_out = dst_info.lng;
 
     return true;
 }

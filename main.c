@@ -47,6 +47,7 @@ void init_controls(void);
 // ==========================================
 
 static void process_existing_dst_point(void);
+static void save_or_clear_dst_point(void);
 static inline void printf_rmc_data();
 static inline void update_position();
 static inline void set_topbar_data(disp_topbar_data_t *topbar_data);
@@ -62,20 +63,14 @@ void core1_main() {
             // wait required duration to check if button is still pressed to avoid occassional clicks
             for (size_t i = 0; i < SAVE_POINT_BTN_DURATION_SEC * 4; i++)
             {
-                busy_wait_ms(SAVE_POINT_BTN_DURATION_SEC / 4);
+                busy_wait_ms(250);
                 if (!button_pressed()) {
                     // do nothing as button was released
                     goto continue_main;
                 }
             }
 
-            // check if rmc_data is defined
-            if (geo_point_is_valid(rmc_data.latitude, rmc_data.longitude)) {
-                geo_point_t pt_to_save = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
-                geo_save_point_as_dst(pt_to_save);
-            } else {
-                // TODO: Think how to notify user that current position is not defined
-            }
+            save_or_clear_dst_point();
         }
 
         continue_main:;
@@ -151,6 +146,26 @@ void process_existing_dst_point(void)
     }
 
     disp_i2c_show_dst_point(&disp_dst_pt_info);
+}
+
+void save_or_clear_dst_point(void)
+{
+    // if exists -- remove ...
+    if (geo_dst_point_exists()) {
+        geo_clear_dst_point();
+
+        return;
+    }
+
+    // ... if not exists -- add
+
+    // check if rmc_data is defined
+    if (geo_point_is_valid(rmc_data.latitude, rmc_data.longitude)) {
+        geo_point_t pt_to_save = { .lat = rmc_data.latitude, .lng = rmc_data.longitude };
+        geo_save_point_as_dst(pt_to_save);
+    } else {
+        // TODO: Think how to notify user that current position is not defined
+    }
 }
 
 inline void printf_rmc_data()

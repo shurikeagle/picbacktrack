@@ -16,19 +16,16 @@ static geo_point_t dst_pt;
 
 void geo_init(void)
 {
-    // float dst_lat, dst_lng;
+    float dst_lat, dst_lng;
 
-    // bool has_inflashmem_dst = flashmem_get_dst_point(&dst_lat, &dst_lng);
-    // if (has_inflashmem_dst) {
-    //     dst_pt.lat = dst_lat;
-    //     dst_pt.lng = dst_lng;
-    // } else {
-    //     dst_pt.lat = NAN;
-    //     dst_pt.lng = NAN;
-    // }
-
-    dst_pt.lat = NAN;
-    dst_pt.lng = NAN;
+    bool has_inflashmem_dst = flashmem_get_dst_point(&dst_lat, &dst_lng);
+    if (has_inflashmem_dst) {
+        dst_pt.lat = dst_lat;
+        dst_pt.lng = dst_lng;
+    } else {
+        dst_pt.lat = NAN;
+        dst_pt.lng = NAN;
+    }
 }
 
 // TODO: Research if this formula neccessary for the distances < 10-20km
@@ -146,16 +143,33 @@ void geo_save_point_as_dst(geo_point_t pt)
     mutex_enter_blocking(&dst_pt_mx);
 
     dst_pt = pt;
-    // flashmem_save_dst_point(pt.lat, pt.lng);
+    flashmem_save_dst_point(pt.lat, pt.lng);
 
     mutex_exit(&dst_pt_mx);
 }
 
-geo_point_t geo_get_dst_point() {
+void geo_clear_dst_point() 
+{
+    if (!mutex_is_initialized(&dst_pt_mx)) {
+        mutex_init(&dst_pt_mx);
+    }
+
+    mutex_enter_blocking(&dst_pt_mx);
+
+    dst_pt.lat = NAN;
+    dst_pt.lng = NAN;
+    flashmem_remove_dst_point();
+
+    mutex_exit(&dst_pt_mx);
+}
+
+geo_point_t geo_get_dst_point() 
+{
     return dst_pt;
 }
 
-bool geo_point_is_valid(float lat, float lng) {
+bool geo_point_is_valid(float lat, float lng) 
+{
     return !isnanf(lat) && !isnanf(lng);
 }
 

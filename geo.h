@@ -47,6 +47,9 @@ void geo_direction_by_degrees(char *buff, unsigned short degrees);
 /// @brief Saves provided geo point as destination point
 void geo_save_point_as_dst(geo_point_t pt);
 
+/// @brief Clears destination point if it exists
+void geo_clear_dst_point(void);
+
 /// @brief Returns destination point
 geo_point_t geo_get_dst_point(void);
 
