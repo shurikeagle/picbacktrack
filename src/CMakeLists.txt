@@ -15,8 +15,8 @@ add_compile_options(-Dtimegm=mktime)
 pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
-    vendor/minmea/minmea.c
-    vendor/pico-ssd1306/ssd1306.c
+    ../vendor/minmea/minmea.c
+    ../vendor/pico-ssd1306/ssd1306.c
     gps_uart.c
     geo.c
     flashmem.c

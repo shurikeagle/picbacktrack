@@ -4,7 +4,7 @@
 
 #include "gps_uart.h"
 
-#include "vendor/minmea/minmea.h"
+#include "../vendor/minmea/minmea.h"
 
 #define GPS_UART_ERR_MAX_LENGTH 100
 #define GPS_UART_READING_INTERVAL_MS 200

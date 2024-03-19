@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "disp_i2c.h"
-#include "vendor/pico-ssd1306/ssd1306.h"
+#include "../vendor/pico-ssd1306/ssd1306.h"
 
 // All the logic is compatible only with ssd1306 128x64
 
