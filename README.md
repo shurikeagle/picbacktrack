@@ -16,4 +16,4 @@ This project requires:
   * Coordinates
   * Distance
   * Absolute (cardinal) direction
-  * Relative direction (according to current direction) 
+  * Relative direction (according to movement direction) 
