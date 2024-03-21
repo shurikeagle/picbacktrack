@@ -16,6 +16,8 @@ static geo_point_t dst_pt;
 
 void geo_init(void)
 {
+    mutex_init(&dst_pt_mx);
+
     float dst_lat, dst_lng;
 
     bool has_inflashmem_dst = flashmem_get_dst_point(&dst_lat, &dst_lng);
@@ -136,10 +138,6 @@ void geo_direction_by_degrees(char *buff, unsigned short degrees)
 
 void geo_save_point_as_dst(geo_point_t pt)
 {
-    if (!mutex_is_initialized(&dst_pt_mx)) {
-        mutex_init(&dst_pt_mx);
-    }
-
     mutex_enter_blocking(&dst_pt_mx);
 
     dst_pt = pt;
@@ -150,10 +148,6 @@ void geo_save_point_as_dst(geo_point_t pt)
 
 void geo_clear_dst_point() 
 {
-    if (!mutex_is_initialized(&dst_pt_mx)) {
-        mutex_init(&dst_pt_mx);
-    }
-
     mutex_enter_blocking(&dst_pt_mx);
 
     dst_pt.lat = NAN;
