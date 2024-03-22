@@ -10,7 +10,7 @@ project(${PROJECT_NAME})
 set(CMAKE_C_STANDARD 11)
 
 # https://github.com/kosma/minmea/blob/master/README.md#limitations
-add_compile_options(-Dtimegm=mktime)
+add_compile_options(-Dtimegm=mktime -Wall)
 
 pico_sdk_init()
 
