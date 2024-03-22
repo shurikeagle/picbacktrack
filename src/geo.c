@@ -159,7 +159,13 @@ void geo_clear_dst_point()
 
 geo_point_t geo_get_dst_point() 
 {
-    return dst_pt;
+    mutex_enter_blocking(&dst_pt_mx);
+
+    geo_point_t res = dst_pt;
+
+    mutex_exit(&dst_pt_mx);
+
+    return res;
 }
 
 bool geo_point_is_valid(float lat, float lng) 
@@ -169,5 +175,11 @@ bool geo_point_is_valid(float lat, float lng)
 
 bool geo_dst_point_exists(void)
 {
-    return geo_point_is_valid(dst_pt.lat, dst_pt.lng);
+    mutex_enter_blocking(&dst_pt_mx);
+
+    bool res = geo_point_is_valid(dst_pt.lat, dst_pt.lng);
+
+    mutex_exit(&dst_pt_mx);
+    
+    return res;
 }
