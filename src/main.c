@@ -71,6 +71,10 @@ void core1_main() {
             }
 
             save_or_clear_dst_point();
+
+            // wait to prevent double pushes before the first core updates data
+            // TODO: Implement better logic to wait less than pre-configured time, e.g. cross-core events
+            busy_wait_ms(2000);
         }
 
         continue_main:;
