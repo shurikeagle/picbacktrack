@@ -6,8 +6,8 @@
 /// @brief represents display topbar data (time, signal, etc)
 typedef struct
 {
-    int time_hour;
-    int time_min;
+    unsigned short time_hour;
+    unsigned short time_min;
     bool has_signal;
 } disp_topbar_data_t;
 

@@ -33,7 +33,7 @@
 #define MAIN_LAT_NAME "lat:"
 #define MAIN_LNG_NAME "lng:"
 #define MAIN_COORD_UNDEFINED "-xxx.xxxxx"
-#define MAIN_COORD_TEMPLATE "%008.5f"
+#define MAIN_COORD_TEMPLATE "%08.5f"
 #define MAIN_COORD_X (MAIN_X_PADDING + ((sizeof(MAIN_LAT_NAME) - 1) * ONE_CHAR_WIDTH_PX)) // -1 because one need to except str end from size
 #define MAIN_LAT_Y 16
 #define MAIN_LNG_Y (MAIN_LAT_Y + ONE_CHAR_HEIGHT_PX + MAIN_Y_PADDING)
@@ -59,7 +59,7 @@ static ssd1306_t display;
 
 static void disp_i2c_show_topbar();
 static void disp_i2c_show_main_screen();
-static void disp_i2c_update_topbar_time_no_show(int hours, int minutes);
+static void disp_i2c_update_topbar_time_no_show(unsigned short hours, unsigned short minutes);
 static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal);
 static void clear_dst_point_no_show(void);
 
@@ -168,15 +168,17 @@ static void disp_i2c_show_main_screen()
     ssd1306_show(&display);
 }
 
-static void disp_i2c_update_topbar_time_no_show(int hours, int minutes)
+static void disp_i2c_update_topbar_time_no_show(unsigned short hours, unsigned short minutes)
 {
     char time_str[sizeof(TOPBAR_TIME_NO_DATA)];
 
     if (hours < 0) {
         strncpy(time_str, TOPBAR_TIME_NO_DATA, sizeof(TOPBAR_TIME_NO_DATA));
     } else {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wformat-overflow"
         sprintf(time_str, "%02d:%02d", hours, minutes);
-        printf("Formatted time: %s\n", time_str);
+        #pragma GCC diagnostic pop
     }
 
     ssd1306_clear_square(&display, TOPBAR_TIME_X, TOPBAR_TIME_Y, TOPBAR_TIME_WIDTH, ONE_CHAR_HEIGHT_PX);
@@ -188,7 +190,7 @@ static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal)
 {
     char gps_signal_str[sizeof(TOPBAR_GPS_NO_SIGNAL)];
     if (has_signal) {
-        strncpy(gps_signal_str, TOPBAR_GPS_HAS_SIGNAL, sizeof(TOPBAR_GPS_HAS_SIGNAL));
+        strncpy(gps_signal_str, TOPBAR_GPS_HAS_SIGNAL, sizeof(gps_signal_str));
     } else {
         strncpy(gps_signal_str, TOPBAR_GPS_NO_SIGNAL, sizeof(TOPBAR_GPS_NO_SIGNAL));
     }
