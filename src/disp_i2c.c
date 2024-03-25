@@ -59,7 +59,7 @@ static ssd1306_t display;
 
 static void disp_i2c_show_topbar();
 static void disp_i2c_show_main_screen();
-static void disp_i2c_update_topbar_time_no_show(unsigned short hours, unsigned short minutes);
+static void disp_i2c_update_topbar_time_no_show(uint8_t hours, uint8_t minutes);
 static void disp_i2c_update_topbar_gps_signal_no_show(bool has_signal);
 static void clear_dst_point_no_show(void);
 
@@ -168,7 +168,7 @@ static void disp_i2c_show_main_screen()
     ssd1306_show(&display);
 }
 
-static void disp_i2c_update_topbar_time_no_show(unsigned short hours, unsigned short minutes)
+static void disp_i2c_update_topbar_time_no_show(uint8_t hours, uint8_t minutes)
 {
     char time_str[sizeof(TOPBAR_TIME_NO_DATA)];
 
