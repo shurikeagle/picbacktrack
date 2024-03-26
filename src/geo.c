@@ -90,7 +90,7 @@ void geo_dst_point_cardinal_direction(char *buff, geo_point_t src) {
         return geo_cardinal_direction(buff, src, dst_pt);
     }
 
-    strncpy(buff, "er", 2);
+    strncpy(buff, "er", 3);
 }
 
 void geo_relative_direction(char *buff, geo_point_t src_prev, geo_point_t src_current, geo_point_t dst) {
@@ -110,29 +110,29 @@ void geo_dst_point_relative_direction(char *buff, geo_point_t src_prev, geo_poin
         return geo_relative_direction(buff, src_prev, src_current, dst_pt);
     }
 
-    strncpy(buff, "er", 2);
+    strncpy(buff, "er", 3);
 }
 
 void geo_direction_by_degrees(char *buff, unsigned short degrees)
 {
     if (degrees >= 360 - DIRECTION_DEVIATION_DEGREES || degrees <= DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "N", 1);
+        strncpy(buff, "N", 2);
     } else if (degrees <= 45 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "NE", 2);
+        strncpy(buff, "NE", 3);
     } else if (degrees <= 90 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "E", 1);
+        strncpy(buff, "E", 2);
     } else if (degrees <= 135 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "SE", 2);
+        strncpy(buff, "SE", 3);
     } else if (degrees <= 180 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "S", 1);
+        strncpy(buff, "S", 2);
     } else if (degrees <= 225 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "SW", 2);
+        strncpy(buff, "SW", 3);
     } else if (degrees <= 270 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "W", 1);
+        strncpy(buff, "W", 2);
     } else if (degrees >= 315 + DIRECTION_DEVIATION_DEGREES) {
-        strncpy(buff, "NW", 2);
+        strncpy(buff, "NW", 3);
     } else {
-        strncpy(buff, "er", 2);
+        strncpy(buff, "er", 3);
     }
 }
 
