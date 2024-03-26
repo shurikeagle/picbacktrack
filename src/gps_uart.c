@@ -68,7 +68,7 @@ gps_uart_res_t gps_uart_get_rmc_blocking(rmc_data_t *out_data) {
     struct minmea_sentence_rmc frame;
     while (true) {
 
-        if (!uart_is_readable) {
+        if (!uart_is_readable(uart_inst)) {
             // just wait a bit to try again
             // TODO: attampt number logic maybe
             sleep_ms(GPS_UART_READING_INTERVAL_MS);
