@@ -1,3 +1,5 @@
+#pragma once
+
 /// @brief Saves destination point with provided coordinates into flash
 void flashmem_save_dst_point(float lat, float lng);
 
